@@ -11,7 +11,9 @@ struct OpenMosaicCaptureIntent: AppIntent {
     static var title: LocalizedStringResource = "记录灵感"
     static var description = IntentDescription("打开空白记录页，可绑定轻点背面和操作按钮。")
     static var openAppWhenRun: Bool { true }
+    #if compiler(>=6.2)
     @available(iOS 26.0, *) static var supportedModes: IntentModes { .foreground }
+    #endif
     @MainActor func perform() async throws -> some IntentResult {
         MosaicLaunchRouter.shared.pending = .direct
         return .result()
@@ -22,7 +24,9 @@ struct OpenMosaicCameraIntent: AppIntent {
     static var title: LocalizedStringResource = "拍照记录"
     static var description = IntentDescription("打开 Thought Mosaic 相机，拍照后记录灵感。")
     static var openAppWhenRun: Bool { true }
+    #if compiler(>=6.2)
     @available(iOS 26.0, *) static var supportedModes: IntentModes { .foreground }
+    #endif
     @MainActor func perform() async throws -> some IntentResult {
         MosaicLaunchRouter.shared.pending = .camera
         return .result()
@@ -33,7 +37,9 @@ struct OpenMosaicScreenshotIntent: AppIntent {
     static var title: LocalizedStringResource = "导入截图"
     static var description = IntentDescription("打开图片选择器，选择截图并记录灵感。")
     static var openAppWhenRun: Bool { true }
+    #if compiler(>=6.2)
     @available(iOS 26.0, *) static var supportedModes: IntentModes { .foreground }
+    #endif
     @MainActor func perform() async throws -> some IntentResult {
         MosaicLaunchRouter.shared.pending = .screenshot
         return .result()
