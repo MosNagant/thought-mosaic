@@ -11,11 +11,12 @@ final class MosaicStore: ObservableObject {
 
     init() {
         let base = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
-        let testing = ProcessInfo.processInfo.arguments.contains("--ui-testing")
-        repository = MosaicRepository(directory: base.appendingPathComponent(testing ? "MosaicUITests" : "ThoughtMosaic"))
-        if testing && ProcessInfo.processInfo.arguments.contains("--reset-data") {
-            try? FileManager.default.removeItem(at: repository.directory)
-        }
+        let arguments = ProcessInfo.processInfo.arguments
+        let testing = arguments.contains("--ui-testing")
+        let testID = arguments.first { $0.hasPrefix("--test-session=") }
+            .flatMap { UUID(uuidString: String($0.dropFirst("--test-session=".count))) }
+        let folder = testing ? "MosaicUITests/\(testID?.uuidString ?? "Default")" : "ThoughtMosaic"
+        repository = MosaicRepository(directory: base.appendingPathComponent(folder))
         do { archive = try repository.load() }
         catch {
             loadFailed = true
@@ -30,7 +31,10 @@ final class MosaicStore: ObservableObject {
 
     @discardableResult
     func keepDraft(_ note: MosaicNote) -> Bool {
-        update { $0.draft = note.hasContent ? note : nil }
+        update {
+            if note.hasContent { $0.draft = note }
+            else if $0.draft?.id == note.id { $0.draft = nil }
+        }
     }
 
     @discardableResult

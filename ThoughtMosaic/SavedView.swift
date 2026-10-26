@@ -22,7 +22,8 @@ struct SavedView: View {
                 Button("完成", action: done).buttonStyle(MosaicButtonStyle(primary: true))
                     .accessibilityIdentifier("finishCapture")
                 Button("继续记录", action: again).buttonStyle(MosaicButtonStyle())
-            }.padding(.horizontal, 20).padding(.top, 125).padding(.bottom, 30)
+                    .accessibilityIdentifier("captureAgain")
+            }.padding(.horizontal, 20).padding(.top, 48).padding(.bottom, 30)
                 .frame(maxWidth: 560).frame(maxWidth: .infinity)
         }
     }

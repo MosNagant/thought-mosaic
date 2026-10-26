@@ -4,6 +4,8 @@ struct TagSheet: View {
     @Environment(\.dismiss) private var dismiss
     @State private var query = ""
     @State private var chosen: [String]
+    @State private var detent: PresentationDetent = .height(370)
+    @FocusState private var editingQuery: Bool
     let recent: [String]
     let onDone: ([String]) -> Void
 
@@ -26,6 +28,7 @@ struct TagSheet: View {
                         .font(.subheadline).padding(12).frame(minHeight: 48)
                         .background(MosaicTheme.material, in: RoundedRectangle(cornerRadius: 10))
                         .submitLabel(.done).onSubmit(createTag)
+                        .focused($editingQuery)
                         .accessibilityIdentifier("tagSearch")
                     Text(cleaned.isEmpty ? "最近使用" : "搜索结果").font(.subheadline.bold())
                     TagFlow(spacing: 10) {
@@ -39,10 +42,15 @@ struct TagSheet: View {
                         Button("＋ 创建“\(cleaned)”", action: createTag)
                             .buttonStyle(MosaicButtonStyle()).accessibilityIdentifier("createTag")
                     }
-                    Button("完成") { onDone(chosen); dismiss() }
-                        .buttonStyle(MosaicButtonStyle(primary: true)).padding(.top, 4)
-                        .accessibilityIdentifier("confirmTags")
                 }.padding(18)
+            }
+            .scrollDismissesKeyboard(.interactively)
+            .safeAreaInset(edge: .bottom) {
+                Button("完成") { editingQuery = false; onDone(chosen); dismiss() }
+                    .buttonStyle(MosaicButtonStyle(primary: true))
+                    .accessibilityIdentifier("confirmTags")
+                    .padding(.horizontal, 18).padding(.vertical, 10)
+                    .background(.regularMaterial)
             }
             .navigationTitle("添加标签").navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -51,7 +59,10 @@ struct TagSheet: View {
                 }
             }
         }
-        .presentationDetents([.height(370), .large])
+        .presentationDetents([.height(370), .large], selection: $detent)
+        .onChange(of: editingQuery) { _, focused in
+            if focused { detent = .large }
+        }
         .presentationDragIndicator(.visible)
         .presentationCornerRadius(26)
     }

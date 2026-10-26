@@ -18,6 +18,8 @@ struct CaptureView: View {
     @State private var saved = false
     @State private var openedEntry = false
     @State private var importedKind: MosaicAttachment.Kind = .photo
+    @State private var resumeEditingAfterExit = false
+    @State private var audioStartTask: Task<Void, Never>?
     @FocusState private var editingText: Bool
     let entry: CaptureEntry
 
@@ -36,22 +38,47 @@ struct CaptureView: View {
                     SavedView(note: note, done: { dismiss() }, again: newNote)
                 } else {
                     editor
-                        .navigationTitle("快速记录").navigationBarTitleDisplayMode(.inline)
-                        .toolbar {
-                            ToolbarItem(placement: .cancellationAction) {
-                                Button(action: requestExit) { Text("‹").font(.title2).frame(minWidth: 36, minHeight: 44) }
-                                    .accessibilityLabel("返回").accessibilityIdentifier("exitEditor")
-                            }
-                            ToolbarItem(placement: .confirmationAction) {
-                                Button("保存", action: save).frame(width: 72)
-                                    .buttonStyle(MosaicButtonStyle(primary: true))
-                                    .disabled(!note.hasContent || audio.isRecording || importing || requestingAudio)
-                                    .accessibilityIdentifier("saveNote")
-                            }
-                        }
                 }
             }
             .background(Color(.systemBackground))
+            .navigationTitle(saved ? "" : "快速记录")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                if !saved {
+                    ToolbarItem(placement: .topBarLeading) {
+                        Button("返回", systemImage: "chevron.backward", action: requestExit)
+                            .disabled(importing || requestingAudio)
+                            .accessibilityIdentifier("exitEditor")
+                    }
+                    ToolbarItem(placement: .confirmationAction) {
+                        Button("保存", action: save)
+                            .buttonStyle(.borderedProminent)
+                            .disabled(!note.hasContent || audio.isRecording || importing || requestingAudio)
+                            .accessibilityIdentifier("saveNote")
+                    }
+                }
+            }
+            .safeAreaInset(edge: .bottom, spacing: 0) {
+                if editingText {
+                    HStack {
+                        Spacer()
+                        Button("收起键盘", systemImage: "keyboard.chevron.compact.down") { editingText = false }
+                            .frame(minHeight: 44).accessibilityIdentifier("dismissKeyboard")
+                    }
+                    .padding(.horizontal, 20).background(.regularMaterial)
+                } else if audio.isRecording {
+                    recordingCard.padding(.horizontal, 20).padding(.vertical, 8)
+                        .background(.regularMaterial)
+                }
+            }
+            .alert("有未保存内容", isPresented: $showExit) {
+                Button("保留草稿") { if store.keepDraft(note) { dismiss() } }
+                    .accessibilityIdentifier("keepDraft")
+                Button(isSavedNote ? "放弃修改" : "放弃记录", role: .destructive) {
+                    if store.discardDraft(id: note.id) { dismiss() }
+                }
+                Button("继续编辑", role: .cancel) { editingText = resumeEditingAfterExit }
+            } message: { Text("你想怎么处理这次记录？") }
         }
         .interactiveDismissDisabled()
         .sheet(item: $sheet) { value in
@@ -82,7 +109,6 @@ struct CaptureView: View {
         .alert("提示", isPresented: Binding(get: { store.message != nil }, set: { if !$0 { store.message = nil } })) {
             Button("知道了") { store.message = nil }
         } message: { Text(store.message ?? "") }
-        .overlay { if showExit { exitConfirmation } }
         .task {
             guard !openedEntry else { return }
             openedEntry = true
@@ -109,7 +135,7 @@ struct CaptureView: View {
         .onReceive(NotificationCenter.default.publisher(for: AVAudioSession.interruptionNotification)) { _ in
             if audio.isRecording { finishRecording() }
         }
-        .onDisappear { finishRecording(); audio.stopPlayback() }
+        .onDisappear { audioStartTask?.cancel(); finishRecording(); audio.stopPlayback() }
     }
 
     private var editor: some View {
@@ -125,20 +151,27 @@ struct CaptureView: View {
                                 .padding(.top, 8).padding(.leading, 5).allowsHitTesting(false)
                         }
                         TextEditor(text: $note.text)
-                            .scrollContentBackground(.hidden).frame(minHeight: 80)
+                            .scrollContentBackground(.hidden).frame(height: 140)
                             .focused($editingText).accessibilityLabel("想法内容").accessibilityIdentifier("thoughtText")
                     }.font(.callout)
                     HStack {
+                        if editingText {
+                            Button("完成输入") { editingText = false }
+                                .font(.footnote).frame(minHeight: 44)
+                                .accessibilityIdentifier("finishTyping")
+                        }
                         Spacer()
                         Button {
                             editingText = false
                             requestingAudio = true
-                            Task { @MainActor in
+                            audioStartTask = Task { @MainActor in
                                 defer { requestingAudio = false }
-                                do { try await audio.start() } catch { store.message = error.localizedDescription }
+                                do { try await audio.start() }
+                                catch is CancellationError { }
+                                catch { store.message = error.localizedDescription }
                             }
                         } label: { Text(requestingAudio ? "正在开启…" : "◉  语音").font(.footnote) }
-                            .foregroundStyle(MosaicTheme.secondary).frame(minHeight: 32)
+                            .foregroundStyle(MosaicTheme.secondary).frame(minHeight: 44)
                             .disabled(audio.isRecording || requestingAudio)
                             .accessibilityIdentifier("recordAudio")
                     }
@@ -146,7 +179,8 @@ struct CaptureView: View {
                     .overlay(RoundedRectangle(cornerRadius: 12).stroke(MosaicTheme.line))
                 HStack(spacing: 10) {
                     Button("▣  拍照") { Task { await openCamera() } }.frame(maxWidth: 140)
-                    Button("▧  添加图片") { importedKind = .photo; showPhotos = true }.frame(maxWidth: 158)
+                    Button("▧  添加图片") { editingText = false; importedKind = .photo; showPhotos = true }
+                        .frame(maxWidth: 158).accessibilityIdentifier("addPhoto")
                 }.buttonStyle(MosaicButtonStyle()).disabled(importing || audio.isRecording || requestingAudio)
                 if importing { ProgressView("正在导入图片…").font(.caption) }
                 Divider().overlay(MosaicTheme.line)
@@ -165,11 +199,10 @@ struct CaptureView: View {
                 }
                 Text(note.createdAt, format: .dateTime.month().day().hour().minute())
                     .font(.subheadline).foregroundStyle(MosaicTheme.muted)
-                if audio.isRecording { recordingCard.padding(.top, 44) }
             }
             .padding(.horizontal, 20).padding(.top, 16).padding(.bottom, 30)
             .frame(maxWidth: 560, alignment: .leading).frame(maxWidth: .infinity)
-        }.scrollDismissesKeyboard(.interactively)
+        }.scrollDismissesKeyboard(.interactively).accessibilityIdentifier("captureScroll")
     }
 
     @ViewBuilder private func attachmentCard(_ attachment: MosaicAttachment) -> some View {
@@ -198,9 +231,8 @@ struct CaptureView: View {
                     }.padding(12)
                 }.buttonStyle(.plain).disabled(audio.isRecording)
             case .photo, .screenshot:
-                if let url = store.repository.mediaURL(for: attachment), let image = UIImage(contentsOfFile: url.path) {
-                    Image(uiImage: image).resizable().scaledToFit().frame(maxWidth: .infinity, maxHeight: 220)
-                        .clipShape(RoundedRectangle(cornerRadius: 10)).accessibilityLabel(attachment.label)
+                if let url = store.repository.mediaURL(for: attachment) {
+                    AttachmentImage(url: url, label: attachment.label)
                 } else {
                     Text("素材文件暂时无法读取").font(.caption).padding()
                 }
@@ -210,37 +242,27 @@ struct CaptureView: View {
     }
 
     private var recordingCard: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("正在录音").font(.headline)
-            Text(recordingTime(audio.elapsed)).font(.largeTitle.bold()).monospacedDigit()
+        HStack(spacing: 16) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text("正在录音").font(.headline)
+                Text(recordingTime(audio.elapsed)).font(.title2.bold()).monospacedDigit()
+            }
+            Spacer()
             Button("停止录音", action: finishRecording).buttonStyle(MosaicButtonStyle(primary: true))
+                .frame(maxWidth: 150).accessibilityIdentifier("stopRecording")
         }.padding(16).background(MosaicTheme.subtle, in: RoundedRectangle(cornerRadius: 14))
             .overlay(RoundedRectangle(cornerRadius: 14).stroke(MosaicTheme.line))
     }
 
-    private var exitConfirmation: some View {
-        ZStack {
-            Color.gray.opacity(0.25).ignoresSafeArea().onTapGesture { showExit = false }
-            VStack(alignment: .leading, spacing: 10) {
-                Text("有未保存内容").font(.headline)
-                Text("你想怎么处理这次记录？").font(.subheadline).foregroundStyle(MosaicTheme.secondary)
-                Button("保留草稿") { if store.keepDraft(note) { showExit = false; dismiss() } }
-                    .buttonStyle(MosaicButtonStyle(primary: true)).accessibilityIdentifier("keepDraft")
-                Button("放弃记录") { if store.discardDraft(id: note.id) { showExit = false; dismiss() } }
-                    .buttonStyle(MosaicButtonStyle())
-                Button("继续编辑") { showExit = false }.buttonStyle(MosaicButtonStyle())
-            }.padding(16).frame(maxWidth: 350)
-                .background(Color(.systemBackground), in: RoundedRectangle(cornerRadius: 16))
-                .overlay(RoundedRectangle(cornerRadius: 16).stroke(MosaicTheme.line))
-                .padding(20).accessibilityAddTraits(.isModal)
-        }
-    }
+    private var isSavedNote: Bool { store.archive.notes.contains { $0.id == note.id } }
 
     private func requestExit() {
+        resumeEditingAfterExit = editingText
         editingText = false
         finishRecording()
-        let isSavedNote = store.archive.notes.contains { $0.id == note.id }
-        if note.hasContent && (!isSavedNote || note != original) { showExit = true } else { dismiss() }
+        audio.stopPlayback()
+        if note != original || (note.hasContent && !isSavedNote) { showExit = true }
+        else { dismiss() }
     }
     private func save() {
         editingText = false
@@ -278,6 +300,34 @@ struct CaptureView: View {
         case .camera: await openCamera()
         case .screenshot: importedKind = .screenshot; showPhotos = true
         case .direct, .sample: break
+        }
+    }
+}
+
+/// Decode once per attachment, off the UI thread. Typing must not reload full-size photos.
+private struct AttachmentImage: View {
+    let url: URL
+    let label: String
+    @State private var image: UIImage?
+    @State private var loading = true
+
+    var body: some View {
+        Group {
+            if let image {
+                Image(uiImage: image).resizable().scaledToFit()
+                    .frame(maxWidth: .infinity, maxHeight: 220)
+                    .clipShape(RoundedRectangle(cornerRadius: 10)).accessibilityLabel(label)
+            } else if loading {
+                ProgressView().frame(maxWidth: .infinity, minHeight: 130)
+            } else {
+                Text("素材文件暂时无法读取").font(.caption).padding()
+            }
+        }
+        .task(id: url) {
+            image = await Task.detached(priority: .userInitiated) {
+                UIImage(contentsOfFile: url.path)?.preparingThumbnail(of: CGSize(width: 1120, height: 440))
+            }.value
+            loading = false
         }
     }
 }

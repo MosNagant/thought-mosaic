@@ -14,6 +14,7 @@ final class AudioService: NSObject, ObservableObject, AVAudioPlayerDelegate {
         let granted = await withCheckedContinuation { continuation in
             AVAudioSession.sharedInstance().requestRecordPermission { continuation.resume(returning: $0) }
         }
+        try Task.checkCancellation()
         guard granted else { throw AudioError.permissionDenied }
         stopPlayback()
         let session = AVAudioSession.sharedInstance()
@@ -68,6 +69,9 @@ final class AudioService: NSObject, ObservableObject, AVAudioPlayerDelegate {
     }
 
     func stopPlayback() {
+        // A text-only edit has no audio session to deactivate. Avoid a blocking
+        // system audio call on every Save, Back, and sheet dismissal.
+        guard player != nil else { return }
         player?.stop()
         player = nil
         playingID = nil

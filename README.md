@@ -14,6 +14,8 @@
 bash scripts/run-simulator.sh
 ```
 
+Xcode 27 的模拟器窗口位于 **Xcode → Open Developer Tool → Device Hub**。使用 Mac 键盘时，打开窗口顶部的 **Capture Keyboard** 后，再点击 App 输入区；长按 Esc 可以退出键盘捕获。App 输入区提供“完成输入”，键盘上方也有“收起键盘”按钮。
+
 ## 可以体验
 
 - 启动直接进入快速记录页；空内容不能保存。
@@ -48,7 +50,7 @@ swift test
 bash scripts/test-ios.sh
 ```
 
-核心测试涵盖保存与重新加载、草稿、空内容校验、音频记录、去重更新、损坏文件保留和素材路径边界。UI 测试覆盖输入→新建标签→保存→重启、草稿恢复/放弃、Figma 示例与弹层，并保存截图到 `.xcresult`。GitHub Actions 运行同一套测试并提供模拟器构建产物。
+核心测试涵盖保存与重新加载、草稿、空内容校验、音频记录、去重更新、损坏文件保留和素材路径边界。UI 测试覆盖输入→新建标签→保存→重启、键盘收起、取消退出后继续输入、长文本、草稿恢复/放弃/清空、标签取消与 Figma 示例，并保存截图到 `.xcresult`。每个 UI 用例使用独立 UUID 测试目录，重启复用同一目录验证持久化，不重置正式记录。GitHub Actions 运行同一套测试并提供模拟器构建产物。
 
 `ThoughtMosaic.xcodeproj` 已提交，无需安装 XcodeGen。添加 Swift 源文件后运行 `python3 scripts/generate_project.py` 更新工程。
 
