@@ -1,4 +1,6 @@
-# Thought Mosaic · iOS Demo
+# Thought Mosaic · iOS 与浏览器 Demo
+
+[打开浏览器 Demo](https://thought-mosaic-demo.fastlime130.chatgpt.site) · Windows、Mac 和手机均可使用，无需安装。源代码与本地启动说明见 [`web/README.md`](web/README.md)。记录保存在访问者自己的浏览器中，不与 iOS 数据或其他测试者同步。
 
 依据 [Group05 Figma 原型](https://www.figma.com/design/Pjx45Twyn7aJrEpjT4hqSE/Group05?node-id=35-716) 实现的 SwiftUI 原生 iOS 灵感记录应用。最低 iOS 17，无第三方运行依赖，无后端账号。
 
@@ -56,6 +58,7 @@ bash scripts/test-ios.sh
 
 ## 目录
 
+- `web/` — 可静态托管的跨平台浏览器 Demo、说明与模型测试
 - `ThoughtMosaic/` — SwiftUI 页面、相机、录音、状态管理
 - `ThoughtMosaicWidget/` — 桌面与锁屏组件
 - `Sources/MosaicCore/` — 数据模型与原子文件持久化
