@@ -1,0 +1,498 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+		2BDB11E71512DB085CEAE31E = {
+			isa = "PBXFileReference";
+			lastKnownFileType = "sourcecode.swift";
+			path = "ThoughtMosaic/AudioService.swift";
+			sourceTree = "SOURCE_ROOT";
+		};
+		D093D2A83231D7157FA67C33 = {
+			isa = "PBXBuildFile";
+			fileRef = "2BDB11E71512DB085CEAE31E";
+		};
+		5844A34C93DE5E01B407F56C = {
+			isa = "PBXFileReference";
+			lastKnownFileType = "sourcecode.swift";
+			path = "ThoughtMosaic/CameraPicker.swift";
+			sourceTree = "SOURCE_ROOT";
+		};
+		AD71351FE6A7CDD8DC91885F = {
+			isa = "PBXBuildFile";
+			fileRef = "5844A34C93DE5E01B407F56C";
+		};
+		2DE0EF995648C3F9E2343642 = {
+			isa = "PBXFileReference";
+			lastKnownFileType = "sourcecode.swift";
+			path = "ThoughtMosaic/CaptureView.swift";
+			sourceTree = "SOURCE_ROOT";
+		};
+		857B36C639466BE2CC5FEA74 = {
+			isa = "PBXBuildFile";
+			fileRef = "2DE0EF995648C3F9E2343642";
+		};
+		94694238A07A806FE639B2D1 = {
+			isa = "PBXFileReference";
+			lastKnownFileType = "sourcecode.swift";
+			path = "ThoughtMosaic/LibraryView.swift";
+			sourceTree = "SOURCE_ROOT";
+		};
+		733712B1F731A73E62E82D48 = {
+			isa = "PBXBuildFile";
+			fileRef = "94694238A07A806FE639B2D1";
+		};
+		A03B174AE2E432192FE8B451 = {
+			isa = "PBXFileReference";
+			lastKnownFileType = "sourcecode.swift";
+			path = "ThoughtMosaic/MosaicStore.swift";
+			sourceTree = "SOURCE_ROOT";
+		};
+		CB0F4D6449F7ACA11AD8E3D7 = {
+			isa = "PBXBuildFile";
+			fileRef = "A03B174AE2E432192FE8B451";
+		};
+		EC0C3166137A40FA47DED17E = {
+			isa = "PBXFileReference";
+			lastKnownFileType = "sourcecode.swift";
+			path = "ThoughtMosaic/SavedView.swift";
+			sourceTree = "SOURCE_ROOT";
+		};
+		C3EE39CED1CD71D44563AC3E = {
+			isa = "PBXBuildFile";
+			fileRef = "EC0C3166137A40FA47DED17E";
+		};
+		695D93877C3648D52E5F5506 = {
+			isa = "PBXFileReference";
+			lastKnownFileType = "sourcecode.swift";
+			path = "ThoughtMosaic/TagSheet.swift";
+			sourceTree = "SOURCE_ROOT";
+		};
+		2C040FD86CF53C3FBA6A2CC7 = {
+			isa = "PBXBuildFile";
+			fileRef = "695D93877C3648D52E5F5506";
+		};
+		B83B812EBD76E49665A9E7D2 = {
+			isa = "PBXFileReference";
+			lastKnownFileType = "sourcecode.swift";
+			path = "ThoughtMosaic/Theme.swift";
+			sourceTree = "SOURCE_ROOT";
+		};
+		4AE5A8CD9C24DEC4134BCAE0 = {
+			isa = "PBXBuildFile";
+			fileRef = "B83B812EBD76E49665A9E7D2";
+		};
+		5D213500AD6986C82393B2AD = {
+			isa = "PBXFileReference";
+			lastKnownFileType = "sourcecode.swift";
+			path = "ThoughtMosaic/ThoughtMosaicApp.swift";
+			sourceTree = "SOURCE_ROOT";
+		};
+		167D7412D7CDD4A9C6663CAA = {
+			isa = "PBXBuildFile";
+			fileRef = "5D213500AD6986C82393B2AD";
+		};
+		F20A7CC05C664AF146FDA6B2 = {
+			isa = "PBXFileReference";
+			lastKnownFileType = "sourcecode.swift";
+			path = "Sources/MosaicCore/MosaicNote.swift";
+			sourceTree = "SOURCE_ROOT";
+		};
+		6FEB5CA9AE8BC228EFEEBABD = {
+			isa = "PBXBuildFile";
+			fileRef = "F20A7CC05C664AF146FDA6B2";
+		};
+		C8B7B46F4602A486AB4D4035 = {
+			isa = "PBXFileReference";
+			lastKnownFileType = "text.plist.xml";
+			path = "ThoughtMosaic/Info.plist";
+			sourceTree = "SOURCE_ROOT";
+		};
+		A0821AAA460A1EA7E6AFB5F0 = {
+			isa = "PBXGroup";
+			children = ("2BDB11E71512DB085CEAE31E", "5844A34C93DE5E01B407F56C", "2DE0EF995648C3F9E2343642", "94694238A07A806FE639B2D1", "A03B174AE2E432192FE8B451", "EC0C3166137A40FA47DED17E", "695D93877C3648D52E5F5506", "B83B812EBD76E49665A9E7D2", "5D213500AD6986C82393B2AD", "F20A7CC05C664AF146FDA6B2", "C8B7B46F4602A486AB4D4035",);
+			name = "ThoughtMosaic";
+			sourceTree = "<group>";
+		};
+		DA36A6AF3446429568A9CAAF = {
+			isa = "PBXFileReference";
+			explicitFileType = "wrapper.application";
+			includeInIndex = 0;
+			path = "ThoughtMosaic.app";
+			sourceTree = "BUILT_PRODUCTS_DIR";
+		};
+		BC4F70F5207DDB900482D20D = {
+			isa = "PBXSourcesBuildPhase";
+			buildActionMask = 2147483647;
+			files = ("D093D2A83231D7157FA67C33", "AD71351FE6A7CDD8DC91885F", "857B36C639466BE2CC5FEA74", "733712B1F731A73E62E82D48", "CB0F4D6449F7ACA11AD8E3D7", "C3EE39CED1CD71D44563AC3E", "2C040FD86CF53C3FBA6A2CC7", "4AE5A8CD9C24DEC4134BCAE0", "167D7412D7CDD4A9C6663CAA", "6FEB5CA9AE8BC228EFEEBABD",);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D5EECD5B01412E7CBA574FB1 = {
+			isa = "PBXFrameworksBuildPhase";
+			buildActionMask = 2147483647;
+			files = ();
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		BB27AD7BBFDDAC09C73BE453 = {
+			isa = "PBXBuildFile";
+			fileRef = "EE0E86547C43B1E19302596B";
+			settings = {
+				ATTRIBUTES = ("RemoveHeadersOnCopy",);
+			};
+		};
+		750AF8B558936E3AECB9A82F = {
+			isa = "PBXCopyFilesBuildPhase";
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = ("BB27AD7BBFDDAC09C73BE453",);
+			name = "Embed App Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		974057A7D968D1BC9BDD5267 = {
+			isa = "PBXContainerItemProxy";
+			containerPortal = "98F54143AB4E86B28C3AFEE0";
+			proxyType = 1;
+			remoteGlobalIDString = "E6A680968AA5B1812BC0CE32";
+			remoteInfo = "ThoughtMosaicWidget";
+		};
+		A6D6379A85C4D38B521F8C87 = {
+			isa = "PBXTargetDependency";
+			target = "E6A680968AA5B1812BC0CE32";
+			targetProxy = "974057A7D968D1BC9BDD5267";
+		};
+		203CC6D1C3848E2D333F82F5 = {
+			isa = "XCBuildConfiguration";
+			buildSettings = {
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.mosnagant.thoughtmosaic";
+				SWIFT_VERSION = "5.0";
+				IPHONEOS_DEPLOYMENT_TARGET = "17.0";
+				TARGETED_DEVICE_FAMILY = "1,2";
+				CODE_SIGN_STYLE = "Automatic";
+				SDKROOT = "iphoneos";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				CURRENT_PROJECT_VERSION = "1";
+				MARKETING_VERSION = "1.0";
+				LD_RUNPATH_SEARCH_PATHS = ("$(inherited)", "@executable_path/Frameworks",);
+				GENERATE_INFOPLIST_FILE = "NO";
+				INFOPLIST_FILE = "ThoughtMosaic/Info.plist";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				DEBUG_INFORMATION_FORMAT = "dwarf";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG";
+			};
+			name = "Debug";
+		};
+		DD2BB05E19B474EE3B3DC344 = {
+			isa = "XCBuildConfiguration";
+			buildSettings = {
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.mosnagant.thoughtmosaic";
+				SWIFT_VERSION = "5.0";
+				IPHONEOS_DEPLOYMENT_TARGET = "17.0";
+				TARGETED_DEVICE_FAMILY = "1,2";
+				CODE_SIGN_STYLE = "Automatic";
+				SDKROOT = "iphoneos";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				CURRENT_PROJECT_VERSION = "1";
+				MARKETING_VERSION = "1.0";
+				LD_RUNPATH_SEARCH_PATHS = ("$(inherited)", "@executable_path/Frameworks",);
+				GENERATE_INFOPLIST_FILE = "NO";
+				INFOPLIST_FILE = "ThoughtMosaic/Info.plist";
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+			};
+			name = "Release";
+		};
+		C7A30CC7E46DCB51169C1B17 = {
+			isa = "XCConfigurationList";
+			buildConfigurations = ("203CC6D1C3848E2D333F82F5", "DD2BB05E19B474EE3B3DC344",);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = "Release";
+		};
+		97F763A95679059A8BBBBE33 = {
+			isa = "PBXNativeTarget";
+			buildConfigurationList = "C7A30CC7E46DCB51169C1B17";
+			buildPhases = ("BC4F70F5207DDB900482D20D", "D5EECD5B01412E7CBA574FB1", "750AF8B558936E3AECB9A82F",);
+			buildRules = ();
+			dependencies = ("A6D6379A85C4D38B521F8C87",);
+			name = "ThoughtMosaic";
+			productName = "ThoughtMosaic";
+			productReference = "DA36A6AF3446429568A9CAAF";
+			productType = "com.apple.product-type.application";
+		};
+		493C7E42089F617463A8BB92 = {
+			isa = "PBXFileReference";
+			lastKnownFileType = "sourcecode.swift";
+			path = "ThoughtMosaicWidget/ThoughtMosaicWidget.swift";
+			sourceTree = "SOURCE_ROOT";
+		};
+		054A94774EBAF6500262EB14 = {
+			isa = "PBXBuildFile";
+			fileRef = "493C7E42089F617463A8BB92";
+		};
+		1F6762AE92E4CDD2A208E81B = {
+			isa = "PBXFileReference";
+			lastKnownFileType = "text.plist.xml";
+			path = "ThoughtMosaicWidget/Info.plist";
+			sourceTree = "SOURCE_ROOT";
+		};
+		3BDBDC297DAC94C782408F10 = {
+			isa = "PBXGroup";
+			children = ("493C7E42089F617463A8BB92", "1F6762AE92E4CDD2A208E81B",);
+			name = "ThoughtMosaicWidget";
+			sourceTree = "<group>";
+		};
+		EE0E86547C43B1E19302596B = {
+			isa = "PBXFileReference";
+			explicitFileType = "wrapper.app-extension";
+			includeInIndex = 0;
+			path = "ThoughtMosaicWidget.appex";
+			sourceTree = "BUILT_PRODUCTS_DIR";
+		};
+		8ABFE2A2D630C3281B4AC54B = {
+			isa = "PBXSourcesBuildPhase";
+			buildActionMask = 2147483647;
+			files = ("054A94774EBAF6500262EB14",);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		7FF79DDAA6B5C04F39BFA6D7 = {
+			isa = "PBXFrameworksBuildPhase";
+			buildActionMask = 2147483647;
+			files = ();
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		0F2C6CFBDB7B1AE4A99E5E46 = {
+			isa = "XCBuildConfiguration";
+			buildSettings = {
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.mosnagant.thoughtmosaic.widget";
+				SWIFT_VERSION = "5.0";
+				IPHONEOS_DEPLOYMENT_TARGET = "17.0";
+				TARGETED_DEVICE_FAMILY = "1,2";
+				CODE_SIGN_STYLE = "Automatic";
+				SDKROOT = "iphoneos";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				CURRENT_PROJECT_VERSION = "1";
+				MARKETING_VERSION = "1.0";
+				LD_RUNPATH_SEARCH_PATHS = ("$(inherited)", "@executable_path/Frameworks", "@executable_path/../../Frameworks",);
+				GENERATE_INFOPLIST_FILE = "NO";
+				INFOPLIST_FILE = "ThoughtMosaicWidget/Info.plist";
+				APPLICATION_EXTENSION_API_ONLY = "YES";
+				SKIP_INSTALL = "YES";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				DEBUG_INFORMATION_FORMAT = "dwarf";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG";
+			};
+			name = "Debug";
+		};
+		A896B77F95CD3FD02187EB4B = {
+			isa = "XCBuildConfiguration";
+			buildSettings = {
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.mosnagant.thoughtmosaic.widget";
+				SWIFT_VERSION = "5.0";
+				IPHONEOS_DEPLOYMENT_TARGET = "17.0";
+				TARGETED_DEVICE_FAMILY = "1,2";
+				CODE_SIGN_STYLE = "Automatic";
+				SDKROOT = "iphoneos";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				CURRENT_PROJECT_VERSION = "1";
+				MARKETING_VERSION = "1.0";
+				LD_RUNPATH_SEARCH_PATHS = ("$(inherited)", "@executable_path/Frameworks", "@executable_path/../../Frameworks",);
+				GENERATE_INFOPLIST_FILE = "NO";
+				INFOPLIST_FILE = "ThoughtMosaicWidget/Info.plist";
+				APPLICATION_EXTENSION_API_ONLY = "YES";
+				SKIP_INSTALL = "YES";
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+			};
+			name = "Release";
+		};
+		4B967C4FA8230A03E5225280 = {
+			isa = "XCConfigurationList";
+			buildConfigurations = ("0F2C6CFBDB7B1AE4A99E5E46", "A896B77F95CD3FD02187EB4B",);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = "Release";
+		};
+		E6A680968AA5B1812BC0CE32 = {
+			isa = "PBXNativeTarget";
+			buildConfigurationList = "4B967C4FA8230A03E5225280";
+			buildPhases = ("8ABFE2A2D630C3281B4AC54B", "7FF79DDAA6B5C04F39BFA6D7",);
+			buildRules = ();
+			dependencies = ();
+			name = "ThoughtMosaicWidget";
+			productName = "ThoughtMosaicWidget";
+			productReference = "EE0E86547C43B1E19302596B";
+			productType = "com.apple.product-type.app-extension";
+		};
+		C281CE57B127BD86E335E34E = {
+			isa = "PBXFileReference";
+			lastKnownFileType = "sourcecode.swift";
+			path = "ThoughtMosaicUITests/CaptureFlowTests.swift";
+			sourceTree = "SOURCE_ROOT";
+		};
+		C662959784AAFAC18024A286 = {
+			isa = "PBXBuildFile";
+			fileRef = "C281CE57B127BD86E335E34E";
+		};
+		57987CD8BFC9855AABE23598 = {
+			isa = "PBXGroup";
+			children = ("C281CE57B127BD86E335E34E",);
+			name = "ThoughtMosaicUITests";
+			sourceTree = "<group>";
+		};
+		BC51BF42926CB03264327D68 = {
+			isa = "PBXFileReference";
+			explicitFileType = "wrapper.cfbundle";
+			includeInIndex = 0;
+			path = "ThoughtMosaicUITests.xctest";
+			sourceTree = "BUILT_PRODUCTS_DIR";
+		};
+		9B885026AC476A1311A1171A = {
+			isa = "PBXSourcesBuildPhase";
+			buildActionMask = 2147483647;
+			files = ("C662959784AAFAC18024A286",);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		4BE58892F1F61BFF7CED3D8D = {
+			isa = "PBXFrameworksBuildPhase";
+			buildActionMask = 2147483647;
+			files = ();
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		40A2450071C1F7D3DE2EA1FC = {
+			isa = "PBXContainerItemProxy";
+			containerPortal = "98F54143AB4E86B28C3AFEE0";
+			proxyType = 1;
+			remoteGlobalIDString = "97F763A95679059A8BBBBE33";
+			remoteInfo = "ThoughtMosaic";
+		};
+		3234A2B94337C32C7F80E30E = {
+			isa = "PBXTargetDependency";
+			target = "97F763A95679059A8BBBBE33";
+			targetProxy = "40A2450071C1F7D3DE2EA1FC";
+		};
+		EE597E40DB6F4210EAB3E573 = {
+			isa = "XCBuildConfiguration";
+			buildSettings = {
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.mosnagant.thoughtmosaicuitests";
+				SWIFT_VERSION = "5.0";
+				IPHONEOS_DEPLOYMENT_TARGET = "17.0";
+				TARGETED_DEVICE_FAMILY = "1,2";
+				CODE_SIGN_STYLE = "Automatic";
+				SDKROOT = "iphoneos";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				CURRENT_PROJECT_VERSION = "1";
+				MARKETING_VERSION = "1.0";
+				LD_RUNPATH_SEARCH_PATHS = ("$(inherited)", "@executable_path/Frameworks",);
+				GENERATE_INFOPLIST_FILE = "YES";
+				TEST_TARGET_NAME = "ThoughtMosaic";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				DEBUG_INFORMATION_FORMAT = "dwarf";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG";
+			};
+			name = "Debug";
+		};
+		51C8F92938BC6107B7B2725B = {
+			isa = "XCBuildConfiguration";
+			buildSettings = {
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.mosnagant.thoughtmosaicuitests";
+				SWIFT_VERSION = "5.0";
+				IPHONEOS_DEPLOYMENT_TARGET = "17.0";
+				TARGETED_DEVICE_FAMILY = "1,2";
+				CODE_SIGN_STYLE = "Automatic";
+				SDKROOT = "iphoneos";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				CURRENT_PROJECT_VERSION = "1";
+				MARKETING_VERSION = "1.0";
+				LD_RUNPATH_SEARCH_PATHS = ("$(inherited)", "@executable_path/Frameworks",);
+				GENERATE_INFOPLIST_FILE = "YES";
+				TEST_TARGET_NAME = "ThoughtMosaic";
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+			};
+			name = "Release";
+		};
+		E8F234F2EABB4D19A98CC3F9 = {
+			isa = "XCConfigurationList";
+			buildConfigurations = ("EE597E40DB6F4210EAB3E573", "51C8F92938BC6107B7B2725B",);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = "Release";
+		};
+		491C418678395F755A12A324 = {
+			isa = "PBXNativeTarget";
+			buildConfigurationList = "E8F234F2EABB4D19A98CC3F9";
+			buildPhases = ("9B885026AC476A1311A1171A", "4BE58892F1F61BFF7CED3D8D",);
+			buildRules = ();
+			dependencies = ("3234A2B94337C32C7F80E30E",);
+			name = "ThoughtMosaicUITests";
+			productName = "ThoughtMosaicUITests";
+			productReference = "BC51BF42926CB03264327D68";
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+		FBDC4F23F93125BBEEAE800C = {
+			isa = "PBXGroup";
+			children = ("DA36A6AF3446429568A9CAAF", "EE0E86547C43B1E19302596B", "BC51BF42926CB03264327D68",);
+			name = "Products";
+			sourceTree = "<group>";
+		};
+		42944EBC669F21BC22392EB5 = {
+			isa = "PBXGroup";
+			children = ("A0821AAA460A1EA7E6AFB5F0", "3BDBDC297DAC94C782408F10", "57987CD8BFC9855AABE23598", "FBDC4F23F93125BBEEAE800C",);
+			sourceTree = "<group>";
+		};
+		89E1FD6268CC0F221A2BE178 = {
+			isa = "XCBuildConfiguration";
+			buildSettings = {
+				CLANG_ENABLE_MODULES = "YES";
+				SWIFT_VERSION = "5.0";
+				IPHONEOS_DEPLOYMENT_TARGET = "17.0";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				DEBUG_INFORMATION_FORMAT = "dwarf";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG";
+			};
+			name = "Debug";
+		};
+		E6DE6C99132752C914FEF632 = {
+			isa = "XCBuildConfiguration";
+			buildSettings = {
+				CLANG_ENABLE_MODULES = "YES";
+				SWIFT_VERSION = "5.0";
+				IPHONEOS_DEPLOYMENT_TARGET = "17.0";
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+			};
+			name = "Release";
+		};
+		862894B703A6DEDF96A9DD6C = {
+			isa = "XCConfigurationList";
+			buildConfigurations = ("89E1FD6268CC0F221A2BE178", "E6DE6C99132752C914FEF632",);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = "Release";
+		};
+		98F54143AB4E86B28C3AFEE0 = {
+			isa = "PBXProject";
+			attributes = {
+				LastUpgradeCheck = "1600";
+				BuildIndependentTargetsInParallel = "YES";
+			};
+			buildConfigurationList = "862894B703A6DEDF96A9DD6C";
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = "zh-Hans";
+			hasScannedForEncodings = 0;
+			knownRegions = ("zh-Hans", "en", "Base",);
+			mainGroup = "42944EBC669F21BC22392EB5";
+			productRefGroup = "FBDC4F23F93125BBEEAE800C";
+			projectDirPath = "";
+			projectRoot = "";
+			targets = ("97F763A95679059A8BBBBE33", "E6A680968AA5B1812BC0CE32", "491C418678395F755A12A324",);
+		};
+	};
+	rootObject = "98F54143AB4E86B28C3AFEE0";
+}

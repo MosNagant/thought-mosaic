@@ -1,0 +1,31 @@
+name: iOS demo validation
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build-and-test:
+    runs-on: macos-15
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify generated project
+        run: |
+          python3 scripts/generate_project.py
+          git diff --exit-code -- ThoughtMosaic.xcodeproj
+      - name: Test persistence and validation
+        run: swift test
+      - name: Run iPhone UI tests
+        run: bash scripts/test-ios.sh
+      - name: Upload test results and simulator build
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ThoughtMosaic-simulator
+          path: |
+            build/*.xcresult
+            build/DerivedData/Build/Products/Debug-iphonesimulator/ThoughtMosaic.app
+          retention-days: 7
