@@ -2,10 +2,13 @@
 """Generate the committed Xcode project using only Python's standard library."""
 import hashlib
 import json
+import argparse
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-OUT = ROOT / 'ThoughtMosaic.xcodeproj'
+parser = argparse.ArgumentParser()
+parser.add_argument('--output', type=Path, help='Generate a reviewable project elsewhere without replacing local Xcode settings.')
+OUT = parser.parse_args().output or ROOT / 'ThoughtMosaic.xcodeproj'
 objects = {}
 
 def uid(name):
@@ -34,37 +37,53 @@ project_id = uid('project')
 targets = []
 groups = []
 products = []
-names = ['ThoughtMosaic', 'ThoughtMosaicWidget', 'ThoughtMosaicUITests']
+names = ['ThoughtMosaic', 'ThoughtMosaicWidget', 'ThoughtMosaicShare', 'ThoughtMosaicUITests']
 for name in names:
     source_paths = sorted((ROOT / name).glob('*.swift'))
-    if name == 'ThoughtMosaic': source_paths += sorted((ROOT / 'Sources/MosaicCore').glob('*.swift'))
+    if name in ['ThoughtMosaic', 'ThoughtMosaicShare']:
+        source_paths += sorted((ROOT / 'Sources/MosaicCore').glob('*.swift'))
+    if name == 'ThoughtMosaicShare': source_paths += [ROOT / 'ThoughtMosaic/Theme.swift', ROOT / 'ThoughtMosaic/TagSheet.swift']
     refs, build = [], []
     for source in source_paths:
         path = str(source.relative_to(ROOT))
         ref = file(path, 'sourcecode.swift')
-        refs.append(ref)
+        if name != 'ThoughtMosaicShare' or path.startswith('ThoughtMosaicShare/'):
+            refs.append(ref)
         build.append(add(name + ':' + path, 'PBXBuildFile', fileRef=ref))
     info = ROOT / name / 'Info.plist'
     if info.exists(): refs.append(file(str(info.relative_to(ROOT)), 'text.plist.xml'))
+    entitlements = ROOT / name / (name + '.entitlements')
+    if entitlements.exists(): refs.append(file(str(entitlements.relative_to(ROOT)), 'text.plist.entitlements'))
+    resources = []
+    for resource in sorted((ROOT / name).glob('*.xcstrings')):
+        path = str(resource.relative_to(ROOT))
+        ref = file(path, 'text.json.xcstrings')
+        refs.append(ref)
+        resources.append(add(name + ':' + path, 'PBXBuildFile', fileRef=ref))
     groups.append(add(name + 'group', 'PBXGroup', children=refs, name=name, sourceTree='<group>'))
-    suffix = '.app' if name == 'ThoughtMosaic' else '.appex' if name.endswith('Widget') else '.xctest'
+    suffix = '.app' if name == 'ThoughtMosaic' else '.appex' if name in ['ThoughtMosaicWidget', 'ThoughtMosaicShare'] else '.xctest'
     product = add(name + 'product', 'PBXFileReference', explicitFileType={'app':'wrapper.application','appex':'wrapper.app-extension','xctest':'wrapper.cfbundle'}[suffix[1:]],
                   includeInIndex=0, path=name + suffix, sourceTree='BUILT_PRODUCTS_DIR')
     products.append(product)
     phases = [add(name + 'sources', 'PBXSourcesBuildPhase', buildActionMask=2147483647, files=build, runOnlyForDeploymentPostprocessing=0),
               add(name + 'frameworks', 'PBXFrameworksBuildPhase', buildActionMask=2147483647, files=[], runOnlyForDeploymentPostprocessing=0)]
+    if resources:
+        phases.append(add(name + 'resources', 'PBXResourcesBuildPhase', buildActionMask=2147483647, files=resources, runOnlyForDeploymentPostprocessing=0))
     dependencies = []
     if name == 'ThoughtMosaic':
-        embed = add('embed-widget', 'PBXBuildFile', fileRef=uid('ThoughtMosaicWidgetproduct'), settings={'ATTRIBUTES':['RemoveHeadersOnCopy']})
+        embeds = [add('embed-widget', 'PBXBuildFile', fileRef=uid('ThoughtMosaicWidgetproduct'), settings={'ATTRIBUTES':['RemoveHeadersOnCopy']}),
+                  add('embed-share', 'PBXBuildFile', fileRef=uid('ThoughtMosaicShareproduct'), settings={'ATTRIBUTES':['RemoveHeadersOnCopy']})]
         phases.append(add('embed-extensions', 'PBXCopyFilesBuildPhase', buildActionMask=2147483647, dstPath='', dstSubfolderSpec=13,
-                          files=[embed], name='Embed App Extensions', runOnlyForDeploymentPostprocessing=0))
-        dependency = 'ThoughtMosaicWidget'
-    elif name.endswith('UITests'): dependency = 'ThoughtMosaic'
-    else: dependency = None
-    if dependency:
-        proxy = add(name + 'proxy', 'PBXContainerItemProxy', containerPortal=project_id, proxyType=1,
+                          files=embeds, name='Embed App Extensions', runOnlyForDeploymentPostprocessing=0))
+        dependency_names = ['ThoughtMosaicWidget', 'ThoughtMosaicShare']
+    elif name.endswith('UITests'): dependency_names = ['ThoughtMosaic']
+    else: dependency_names = []
+    for dependency in dependency_names:
+        # Preserve the existing widget/test object identifiers.
+        key = name if dependency != 'ThoughtMosaicShare' else name + '-share'
+        proxy = add(key + 'proxy', 'PBXContainerItemProxy', containerPortal=project_id, proxyType=1,
                     remoteGlobalIDString=uid(dependency + 'target'), remoteInfo=dependency)
-        dependencies.append(add(name + 'dependency', 'PBXTargetDependency', target=uid(dependency + 'target'), targetProxy=proxy))
+        dependencies.append(add(key + 'dependency', 'PBXTargetDependency', target=uid(dependency + 'target'), targetProxy=proxy))
     settings = dict(PRODUCT_NAME='$(TARGET_NAME)', PRODUCT_BUNDLE_IDENTIFIER='com.mosnagant.' + name.lower(),
                     SWIFT_VERSION='5.0', IPHONEOS_DEPLOYMENT_TARGET='17.0', TARGETED_DEVICE_FAMILY='1,2',
                     CODE_SIGN_STYLE='Automatic', SDKROOT='iphoneos', SUPPORTED_PLATFORMS='iphoneos iphonesimulator',
@@ -72,8 +91,9 @@ for name in names:
                     LD_RUNPATH_SEARCH_PATHS=['$(inherited)', '@executable_path/Frameworks'])
     if info.exists(): settings.update(GENERATE_INFOPLIST_FILE='NO', INFOPLIST_FILE=name + '/Info.plist')
     else: settings.update(GENERATE_INFOPLIST_FILE='YES', TEST_TARGET_NAME='ThoughtMosaic')
-    if name.endswith('Widget'):
-        settings.update(PRODUCT_BUNDLE_IDENTIFIER='com.mosnagant.thoughtmosaic.widget', APPLICATION_EXTENSION_API_ONLY='YES', SKIP_INSTALL='YES',
+    if entitlements.exists(): settings.update(CODE_SIGN_ENTITLEMENTS=str(entitlements.relative_to(ROOT)))
+    if suffix == '.appex':
+        settings.update(PRODUCT_BUNDLE_IDENTIFIER='com.mosnagant.thoughtmosaic.' + ('widget' if name.endswith('Widget') else 'share'), APPLICATION_EXTENSION_API_ONLY='YES', SKIP_INSTALL='YES',
                         LD_RUNPATH_SEARCH_PATHS=['$(inherited)', '@executable_path/Frameworks', '@executable_path/../../Frameworks'])
     target = add(name + 'target', 'PBXNativeTarget', buildConfigurationList=config_list(name, settings), buildPhases=phases,
                  buildRules=[], dependencies=dependencies, name=name, productName=name, productReference=product,
@@ -95,7 +115,7 @@ def plist(value, level=0):
     if isinstance(value, int): return str(value)
     return json.dumps(value, ensure_ascii=False)
 
-OUT.mkdir(exist_ok=True)
+OUT.mkdir(parents=True, exist_ok=True)
 (OUT / 'project.pbxproj').write_text('// !$*UTF8*$!\n' + plist(dict(archiveVersion=1, classes={}, objectVersion=56, objects=objects, rootObject=project_id)) + '\n')
 scheme_dir = OUT / 'xcshareddata/xcschemes'
 scheme_dir.mkdir(parents=True, exist_ok=True)
@@ -111,4 +131,4 @@ scheme = f'''<?xml version="1.0" encoding="UTF-8"?>
 <AnalyzeAction buildConfiguration="Debug"/><ArchiveAction buildConfiguration="Release" revealArchiveInOrganizer="YES"/>
 </Scheme>'''
 (scheme_dir / 'ThoughtMosaic.xcscheme').write_text(scheme)
-print('Generated ThoughtMosaic.xcodeproj (app, widget, UI tests)')
+print('Generated ThoughtMosaic.xcodeproj (app, widget, share extension, UI tests)')

@@ -7,6 +7,7 @@ final class MosaicStore: ObservableObject {
     @Published var message: String?
     @Published private(set) var loadFailed = false
     @Published var requestedEntry: CaptureEntry?
+    @Published var sharedImportCount = 0
     let repository: MosaicRepository
 
     init() {
@@ -70,5 +71,20 @@ final class MosaicStore: ObservableObject {
         }
         guard let data = resized.jpegData(compressionQuality: 0.85) else { throw MosaicError.invalidAttachment }
         return try repository.importMedia(data, kind: kind, extension: "jpg")
+    }
+
+    @discardableResult
+    func importSharedCaptures() -> Bool {
+        guard !loadFailed, !ProcessInfo.processInfo.arguments.contains("--ui-testing") else { return false }
+        do {
+            let report = try MosaicShareInbox.shared().importPending(into: repository)
+            archive = report.archive
+            sharedImportCount += report.imported.count
+            if report.failureCount > 0 { message = "有 \(report.failureCount) 条分享暂时未能导入，原分享已保留，稍后打开 App 会重试。" }
+            return !report.imported.isEmpty
+        } catch MosaicShareInbox.InboxError.unavailable {
+            // The main app remains usable on builds without provisioned App Groups.
+            return false
+        } catch { message = "分享内容暂时未能导入，原文件已保留。\n\(error.localizedDescription)"; return false }
     }
 }

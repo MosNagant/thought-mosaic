@@ -1,0 +1,39 @@
+{
+  "sourceLanguage": "zh-Hans",
+  "strings": {
+    "用 ${applicationName} 记录灵感": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Capture an idea with ${applicationName}"
+          }
+        }
+      }
+    },
+    "用 ${applicationName} 拍照记录": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Take a photo with ${applicationName}"
+          }
+        }
+      }
+    },
+    "用 ${applicationName} 导入截图": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Import a screenshot with ${applicationName}"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

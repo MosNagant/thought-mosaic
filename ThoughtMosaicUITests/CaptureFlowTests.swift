@@ -37,6 +37,43 @@ final class CaptureFlowTests: XCTestCase {
         XCTAssertTrue(app.staticTexts["A quiet corner, a new idea."].waitForExistence(timeout: 3))
     }
 
+    func testAllFourEntryPlansReachCaptureAndSave() {
+        app.buttons["exitEditor"].tap()
+        for plan in ["A1", "A2", "B", "C"] {
+            let lab = app.buttons["entryLab"]
+            for _ in 0..<4 where !lab.isHittable { app.swipeUp() }
+            XCTAssertTrue(lab.waitForExistence(timeout: 4)); lab.tap()
+            let picker = app.segmentedControls["entryPlanPicker"]
+            XCTAssertTrue(picker.waitForExistence(timeout: 4))
+            picker.buttons[plan].tap()
+            switch plan {
+            case "A1":
+                let shot = app.buttons["entryA1Screenshot"]
+                if !shot.isHittable { app.swipeUp() }
+                shot.tap()
+                let record = app.buttons["entryA1Record"]
+                XCTAssertTrue(record.waitForExistence(timeout: 4)); if !record.isHittable { app.swipeUp() }; record.tap()
+            case "A2":
+                app.buttons["entryA2Widget"].tap()
+                let shutter = app.buttons["entryA2Shutter"]
+                if !shutter.isHittable { app.swipeUp() }; shutter.tap()
+            case "B":
+                let swipe = app.buttons["entryBSwipe"]
+                if !swipe.isHittable { app.swipeUp() }; swipe.tap()
+            default: app.buttons["entryCApp"].tap()
+            }
+            XCTAssertTrue(editor.waitForExistence(timeout: 5))
+            if plan == "A1" || plan == "A2" { XCTAssertTrue(app.buttons["saveNote"].isEnabled) }
+            else { XCTAssertFalse(app.buttons["saveNote"].isEnabled) }
+            editor.tap(); editor.typeText("Entry plan \(plan)")
+            app.buttons["finishTyping"].tap()
+            app.buttons["saveNote"].tap()
+            XCTAssertTrue(app.staticTexts["savedTitle"].waitForExistence(timeout: 5))
+            screenshot("entry-\(plan)-saved")
+            app.buttons["finishCapture"].tap()
+        }
+    }
+
     func testDraftAndDiscard() {
         editor.tap(); editor.typeText("Keep this draft")
         app.buttons["exitEditor"].tap()

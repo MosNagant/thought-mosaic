@@ -3,6 +3,7 @@ import SwiftUI
 @main
 struct ThoughtMosaicApp: App {
     @StateObject private var store = MosaicStore()
+    init() { MosaicAppShortcuts.updateAppShortcutParameters() }
     var body: some Scene {
         WindowGroup {
             RootView().environmentObject(store)
@@ -22,6 +23,8 @@ struct CaptureSession: Identifiable {
 
 struct RootView: View {
     @EnvironmentObject private var store: MosaicStore
+    @Environment(\.scenePhase) private var scenePhase
+    @StateObject private var launchRouter = MosaicLaunchRouter.shared
     @State private var session: CaptureSession?
     @State private var launched = false
     var body: some View {
@@ -34,16 +37,29 @@ struct RootView: View {
         .task {
             guard !launched else { return }
             launched = true
-            open(note: store.archive.draft ?? MosaicNote(), entry: .direct)
+            let imported = store.importSharedCaptures()
+            if let entry = launchRouter.pending {
+                launchRouter.pending = nil
+                route(entry)
+            } else if !imported && store.sharedImportCount == 0 { open(note: store.archive.draft ?? MosaicNote(), entry: .direct) }
         }
         .onOpenURL { url in
             guard url.scheme == "thoughtmosaic" else { return }
             let entry = CaptureEntry(rawValue: url.host ?? "") ?? .direct
-            if session != nil {
-                // Do not replace an active editor and lose its unsaved content.
-                store.requestedEntry = entry
-            } else { open(note: store.archive.draft ?? MosaicNote(), entry: entry) }
+            route(entry)
         }
+        .onReceive(launchRouter.$pending) { entry in
+            guard let entry else { return }
+            launchRouter.pending = nil
+            route(entry)
+        }
+        .onChange(of: scenePhase) { _, phase in if phase == .active { store.importSharedCaptures() } }
+    }
+
+    private func route(_ entry: CaptureEntry) {
+        launched = true
+        if session != nil { store.requestedEntry = entry }
+        else { open(note: store.archive.draft ?? MosaicNote(), entry: entry) }
     }
 
     private func open(note: MosaicNote, entry: CaptureEntry) {

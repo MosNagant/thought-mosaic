@@ -1,9 +1,12 @@
 import SwiftUI
+import AppIntents
 
 struct LibraryView: View {
     @EnvironmentObject private var store: MosaicStore
     @State private var query = ""
     @State private var showGuide = false
+    @State private var showEntryLab = false
+    @State private var pendingCapture: CaptureSession?
     let capture: (MosaicNote, CaptureEntry) -> Void
 
     private var notes: [MosaicNote] {
@@ -15,7 +18,12 @@ struct LibraryView: View {
 
     var body: some View {
         List {
+            if store.sharedImportCount > 0 {
+                Section { Label("已从分享导入 \(store.sharedImportCount) 条灵感", systemImage: "checkmark.circle") }
+            }
             Section {
+                Button("快捷唤醒体验 · A1 / A2 / B / C") { showEntryLab = true }
+                    .accessibilityIdentifier("entryLab")
                 Button { capture(MosaicNote(), .camera) } label: {
                     HStack(spacing: 14) {
                         Text("▣").font(.largeTitle).foregroundStyle(MosaicTheme.ink)
@@ -81,16 +89,32 @@ struct LibraryView: View {
                     .accessibilityLabel("新建记录").accessibilityIdentifier("newNote")
             }
         }
+        .sheet(isPresented: $showEntryLab, onDismiss: {
+            if let pending = pendingCapture {
+                pendingCapture = nil
+                capture(pending.note, pending.entry)
+            }
+        }) {
+            EntryLabView { note, entry in
+                pendingCapture = CaptureSession(note: note, entry: entry)
+                showEntryLab = false
+            }
+        }
         .sheet(isPresented: $showGuide) {
             NavigationStack {
                 List {
                     Section("桌面组件") { Text("长按 iPhone 桌面，添加 Thought Mosaic 小组件。点击“拍照记录”即可打开相机。") }
-                    Section("截图") { Text("完成系统截图后，在 App 中点击“导入截图”，从相册选择截图并记录当下想法。") }
+                    Section("截图分享 · A1") {
+                        Text("完成系统截图 → 打开截图预览 → 分享 → Thought Mosaic。在分享面板内写想法、加标签并保存；下次打开 App 会自动导入。若首次找不到，请在分享列表的“更多”中启用 Thought Mosaic。")
+                        Text("也可以在 App 中点击“导入截图”，从相册选择。系统截图浮窗不会增加自定义按钮；原型中的浮窗可在“快捷唤醒体验”中演示。")
+                    }
                     Section("快捷指令 / 轻点背面") {
-                        Text("创建“打开 URL”快捷指令，URL 填 thoughtmosaic://direct。然后可在 iPhone 设置的“辅助功能 → 触控 → 轻点背面”中绑定该快捷指令。")
+                        ShortcutsLink()
+                        Text("打开“快捷指令” → 新建快捷指令 → 搜索 Thought Mosaic → 选择“记录灵感”“拍照记录”或“导入截图”。保存后，在 iPhone 设置 → 辅助功能 → 触控 → 轻点背面，选择运行这个快捷指令。支持操作按钮的机型也可绑定。")
+                        Text("若快捷动作尚未索引，可使用“URL”与“打开 URL”两步，分别填写 thoughtmosaic://direct、thoughtmosaic://camera 或 thoughtmosaic://screenshot。")
                     }
                     Section("关于原型中的三指上滑") {
-                        Text("iOS 不允许第三方 App 在其他 App 上监听全局三指手势或修改系统截图浮窗。本 demo 使用桌面组件和快捷指令作为系统入口。")
+                        Text("“快捷唤醒体验”的 B 场景支持区域内三指上滑和按钮模拟。普通 iOS App 无法注册跨 App 的三指唤醒手势，实际系统入口请用轻点背面、快捷指令或桌面组件。")
                     }
                 }.navigationTitle("快捷入口").navigationBarTitleDisplayMode(.inline)
                     .toolbar { ToolbarItem(placement: .confirmationAction) { Button("完成") { showGuide = false } } }

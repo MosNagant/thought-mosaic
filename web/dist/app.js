@@ -1,8 +1,9 @@
+import { ENTRY_PLANS, ENTRY_ORDER, entriesMarkup, bindEntryGesture, makeDemoScreenshot } from './entries.js';
 import { DEFAULT_TAGS, normalizeTags, newNote, hasContent, title, signature, matches, readArchive, putDraft, removeDraft, saveNote, deleteNote, importNotes } from './model.js';
 
 const $ = (selector, root = document) => root.querySelector(selector);
 const app = $('#app'), dialog = $('#dialog');
-const state = { notes: [], drafts: [], view: 'library', filter: 'all', tag: '', query: '', note: null, original: null, baseUpdatedAt: null, busy: false, storageError: '', recording: false };
+const state = { notes: [], drafts: [], view: 'library', filter: 'all', tag: '', query: '', note: null, original: null, baseUpdatedAt: null, busy: false, storageError: '', recording: false, entryPlan: 'a1', entryStep: 'ready', entryScreenshot: null };
 const paths = {
   plus: '<path d="M12 5v14M5 12h14"/>', back: '<path d="m15 5-7 7 7 7"/>', close: '<path d="m6 6 12 12M6 18 18 6"/>',
   grid: '<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>',
@@ -36,9 +37,10 @@ function render() {
   releaseURLs();
   app.innerHTML = `<div class="shell"><aside class="sidebar">${brand}<button class="btn primary new-button" data-action="new">${icon('plus')}新建记录</button>
     <nav class="sidebar-nav" aria-label="记录导航"><button class="nav-item ${state.filter === 'all' && !state.tag ? 'active' : ''}" data-action="all">${icon('grid')}全部记录<span class="count">${state.notes.length}</span></button><button class="nav-item ${state.filter === 'drafts' ? 'active' : ''}" data-action="drafts">${icon('edit')}我的草稿<span class="count">${state.drafts.length}</span></button></nav>
-    <div class="side-label">灵感标签</div><div class="side-tags">${allTags().slice(0,10).map(t => `<button class="side-tag ${state.tag === t ? 'active' : ''}" data-action="filter-tag" data-tag="${esc(t)}"><span>#</span>${esc(t)}</button>`).join('')}</div>
+    <button class="nav-item ${state.view === 'entries' ? 'active' : ''}" data-action="entries">${icon('arrow')}快捷唤醒体验</button><div class="side-label">灵感标签</div><div class="side-tags">${allTags().slice(0,10).map(t => `<button class="side-tag ${state.tag === t ? 'active' : ''}" data-action="filter-tag" data-tag="${esc(t)}"><span>#</span>${esc(t)}</button>`).join('')}</div>
     <div class="sidebar-bottom"><button class="nav-item" data-action="sample">${icon('grid')}体验原型示例</button><button class="nav-item" data-action="help">${icon('help')}使用说明与备份</button><div class="local-label">${icon('lock')}仅保存在此浏览器</div><p class="sidebar-footnote">THOUGHT MOSAIC · WEB DEMO</p></div></aside>
-    <main class="main"><header class="mobile-header">${brand}<button class="icon-btn" data-action="help" aria-label="使用说明与备份">${icon('help')}</button></header><header class="topbar"><div class="path">我的空间<span>/</span><strong>${state.view === 'editor' ? '快速记录' : state.view === 'saved' ? '已保存' : '灵感库'}</strong></div><div class="edition"><span class="dot"></span>浏览器体验版</div></header><div class="workspace ${state.view === 'editor' ? 'editor-workspace' : ''}">${state.storageError ? `<div class="error-banner" role="alert">${esc(state.storageError)}</div>` : ''}${state.view === 'editor' ? editorMarkup() : state.view === 'saved' ? savedMarkup() : libraryMarkup()}</div></main></div>`;
+    <main class="main"><header class="mobile-header">${brand}<button class="icon-btn" data-action="help" aria-label="使用说明与备份">${icon('help')}</button></header><header class="topbar"><div class="path">我的空间<span>/</span><strong>${state.view === 'editor' ? '快速记录' : state.view === 'saved' ? '已保存' : state.view === 'entries' ? '快捷唤醒体验' : '灵感库'}</strong></div><div class="edition"><span class="dot"></span>浏览器体验版</div></header><div class="workspace ${state.view === 'editor' ? 'editor-workspace' : ''}">${state.storageError ? `<div class="error-banner" role="alert">${esc(state.storageError)}</div>` : ''}${state.view === 'editor' ? editorMarkup() : state.view === 'saved' ? savedMarkup() : state.view === 'entries' ? entriesMarkup(state.entryPlan, state.entryStep, state.entryScreenshot ? url(state.entryScreenshot) : '') : libraryMarkup()}</div></main></div>`;
+  if (state.view === 'entries') bindEntryGesture($('#gesture-surface'), () => enterFromPlan('b').catch(report));
   if (state.view === 'library') {
     $('#search').value = state.query;
     $('#search').addEventListener('input', event => { state.query = event.target.value; renderCards(); });
@@ -52,7 +54,7 @@ function render() {
 function libraryMarkup() {
   return `<section class="page-heading"><div><div class="eyebrow">YOUR THOUGHTS, PIECED TOGETHER</div><h1>给灵感，留个位置。</h1><p>一句话、一张图，或一段声音。先记下来，慢慢拼起来。</p></div><div class="date-stamp">${new Intl.DateTimeFormat('zh-CN', { month: 'long', day: 'numeric', weekday: 'long' }).format(new Date())}</div></section>
     <section class="capture-banner"><div class="banner-copy"><h2>刚刚，想到了什么？</h2><p>不必完整，也不用整理。<br>每一个小小的念头，都值得被留下。</p><div class="banner-actions"><button class="btn" data-action="new">${icon('plus')}记下一点想法</button><button class="btn ghost" data-action="capture-new">${icon('camera')}拍照</button></div></div><div class="mosaic-art" aria-hidden="true"><span></span><span></span><span></span><span></span></div></section>
-    <div class="library-toolbar"><h2 class="section-title">${state.filter === 'drafts' ? '我的草稿' : '我的记录'}<span id="result-count"></span></h2><div class="mobile-filter"><button class="btn ${state.filter === 'all' ? 'selected' : ''}" data-action="all">全部</button><button class="btn ${state.filter === 'drafts' ? 'selected' : ''}" data-action="drafts">草稿 ${state.drafts.length}</button></div><label class="search-box">${icon('search')}<input id="search" type="search" placeholder="搜索想法或标签" aria-label="搜索想法或标签" autocomplete="off"></label></div>${state.tag ? `<div class="filter-status">标签：${esc(state.tag)}<button class="text-button" data-action="all">清除筛选</button></div>` : ''}<div class="note-grid" id="note-grid">${cardsMarkup()}</div>
+    <section class="entry-launcher"><div><strong>四种快捷唤醒，都试试看</strong><p>A1 截图 · A2 拍照组件 · B 三指上滑 · C 直接打开</p></div><button class="btn" data-action="entries">开始体验 →</button></section><div class="library-toolbar"><h2 class="section-title">${state.filter === 'drafts' ? '我的草稿' : '我的记录'}<span id="result-count"></span></h2><div class="mobile-filter"><button class="btn ${state.filter === 'all' ? 'selected' : ''}" data-action="all">全部</button><button class="btn ${state.filter === 'drafts' ? 'selected' : ''}" data-action="drafts">草稿 ${state.drafts.length}</button></div><label class="search-box">${icon('search')}<input id="search" type="search" placeholder="搜索想法或标签" aria-label="搜索想法或标签" autocomplete="off"></label></div>${state.tag ? `<div class="filter-status">标签：${esc(state.tag)}<button class="text-button" data-action="all">清除筛选</button></div>` : ''}<div class="note-grid" id="note-grid">${cardsMarkup()}</div>
     <footer class="library-bottom"><span>灵感不必按顺序出现。<br>记录存于当前浏览器，不会上传或与他人共享。</span><button class="text-button" data-action="sample">体验 Figma 原型示例 ↗</button></footer>`;
 }
 function cardsMarkup() {
@@ -66,15 +68,15 @@ function cardsMarkup() {
 }
 function renderCards() { releaseURLs(); $('#note-grid').innerHTML = cardsMarkup(); $('#result-count').textContent = ` / ${(state.filter === 'drafts' ? state.drafts : state.notes).filter(n => matches(n, state.query, state.tag)).length}`; }
 function editorMarkup() {
-  return `<div class="page-heading"><div><div class="eyebrow">CAPTURE THE MOMENT</div><h1>让想法，落在这里。</h1></div></div><div class="editor-wrap"><section class="editor-paper" aria-label="快速记录编辑器"><header class="editor-nav"><button class="icon-btn" data-action="exit" aria-label="返回灵感库">${icon('back')}</button><h1>快速记录</h1><button id="save-note" class="btn primary" data-action="save" ${hasContent(state.note) ? '' : 'disabled'}>保存</button></header><div class="editor-body"><div id="attachments" class="attachment-list"></div><h2><label for="thought">想记住什么？一句话也可以。</label></h2><div class="text-box"><textarea id="thought" placeholder="刚刚想到了什么？" aria-label="想法内容" spellcheck="false"></textarea><div class="input-footer"><span id="character-count">${Array.from(state.note.text).length} 字</span><button data-action="finish-typing">完成输入</button><button id="record-audio" data-action="record">${icon('mic')}语音</button></div><div id="recording-area"></div></div><div class="material-actions"><button class="btn" data-action="camera">${icon('camera')}拍照</button><button class="btn" data-action="add-image">${icon('image')}添加图片</button></div><div class="tag-section"><h3>标签 <span>（可选）</span></h3><div class="chips" id="selected-tags">${selectedTagsMarkup()}</div></div><div class="editor-foot"><span>${date(state.note.createdAt, true)}</span><span id="draft-status" role="status">${state.drafts.some(n => n.id === state.note.id) ? '已恢复草稿' : '随时记下，不用着急'}</span></div>${state.baseUpdatedAt ? `<button class="btn ghost compact danger" data-action="delete">${icon('trash')}删除这条记录</button>` : ''}</div></section><aside class="editor-aside"><div class="eyebrow">A LITTLE SPACE FOR YOU</div><h2>想法还很零散，<br>也没关系。</h2><p>留下当时的画面、声音和心情。<br>将来的某一天，它们也许会连成新的灵感。</p><div class="aside-line"></div><div class="shortcut"><kbd>${navigator.platform.includes('Mac') ? '⌘' : 'Ctrl'} + Enter</kbd>保存记录</div><p>图片可以拖进来，也可以直接粘贴。编辑会自动保留为草稿。</p></aside></div>`;
+  return `<div class="page-heading"><div><div class="eyebrow">CAPTURE THE MOMENT</div><h1>让想法，落在这里。</h1></div></div><div class="editor-wrap"><section class="editor-paper" aria-label="快速记录编辑器"><header class="editor-nav"><button class="icon-btn" data-action="exit" aria-label="返回灵感库">${icon('back')}</button><h1>快速记录</h1><button id="save-note" class="btn primary" data-action="save" ${hasContent(state.note) ? '' : 'disabled'}>保存</button></header><div class="editor-body">${state.note.entryMethod && ENTRY_PLANS[state.note.entryMethod] ? `<div class="entry-origin">来自方案 ${ENTRY_PLANS[state.note.entryMethod].code} · ${ENTRY_PLANS[state.note.entryMethod].title}</div>` : ''}<div id="attachments" class="attachment-list"></div><h2><label for="thought">想记住什么？一句话也可以。</label></h2><div class="text-box"><textarea id="thought" placeholder="刚刚想到了什么？" aria-label="想法内容" spellcheck="false"></textarea><div class="input-footer"><span id="character-count">${Array.from(state.note.text).length} 字</span><button data-action="finish-typing">完成输入</button><button id="record-audio" data-action="record">${icon('mic')}语音</button></div><div id="recording-area"></div></div><div class="material-actions"><button class="btn" data-action="camera">${icon('camera')}拍照</button><button class="btn" data-action="add-image">${icon('image')}添加图片</button></div><div class="tag-section"><h3>标签 <span>（可选）</span></h3><div class="chips" id="selected-tags">${selectedTagsMarkup()}</div></div><div class="editor-foot"><span>${date(state.note.createdAt, true)}</span><span id="draft-status" role="status">${state.drafts.some(n => n.id === state.note.id) ? '已恢复草稿' : '随时记下，不用着急'}</span></div>${state.baseUpdatedAt ? `<button class="btn ghost compact danger" data-action="delete">${icon('trash')}删除这条记录</button>` : ''}</div></section><aside class="editor-aside"><div class="eyebrow">A LITTLE SPACE FOR YOU</div><h2>想法还很零散，<br>也没关系。</h2><p>留下当时的画面、声音和心情。<br>将来的某一天，它们也许会连成新的灵感。</p><div class="aside-line"></div><div class="shortcut"><kbd>${navigator.platform.includes('Mac') ? '⌘' : 'Ctrl'} + Enter</kbd>保存记录</div><p>图片可以拖进来，也可以直接粘贴。编辑会自动保留为草稿。</p></aside></div>`;
 }
 function selectedTagsMarkup() { return state.note.tags.map(t => `<button class="chip" data-action="tags">${esc(t)}</button>`).join('') + `<button class="chip" data-action="tags">${icon('plus')}添加标签</button>`; }
 function renderAttachments() {
   const list = $('#attachments'); if (!list) return;
   releaseURLs();
-  list.innerHTML = state.note.attachments.map((a, i) => `<div class="attachment"><div class="attachment-head"><span class="chip">${icon('check')}${a.kind === 'audio' ? '语音' : a.kind === 'sample' ? '截图' : '图片'}</span><button class="icon-btn" data-action="remove-attachment" data-id="${esc(a.id)}" aria-label="移除第 ${i + 1} 份素材">${icon('close')}</button></div>${a.kind === 'sample' ? sampleArt : a.kind === 'audio' ? `<audio controls preload="metadata" src="${url(a.blob)}" aria-label="语音录音 ${i + 1}"></audio>` : `<img src="${url(a.blob)}" alt="添加的图片 ${i + 1}">`}</div>`).join('');
+  list.innerHTML = state.note.attachments.map((a, i) => `<div class="attachment"><div class="attachment-head"><span class="chip">${icon('check')}${a.kind === 'audio' ? '语音' : a.kind === 'screenshot' || a.kind === 'sample' && a.label !== '照片' ? '截图' : '图片'}</span><button class="icon-btn" data-action="remove-attachment" data-id="${esc(a.id)}" aria-label="移除第 ${i + 1} 份素材">${icon('close')}</button></div>${a.kind === 'sample' ? sampleArt : a.kind === 'audio' ? `<audio controls preload="metadata" src="${url(a.blob)}" aria-label="语音录音 ${i + 1}"></audio>` : `<img src="${url(a.blob)}" alt="添加的图片 ${i + 1}">`}</div>`).join('');
 }
-function savedMarkup() { const n = state.note; return `<section class="saved-view"><div class="check-circle">${icon('check')}</div><div class="eyebrow">ONE MORE PIECE OF INSPIRATION</div><h1>已保存</h1><p>这个小小的念头，已经被好好留下。</p><div class="saved-summary"><strong>本次保存内容</strong>${[n.text.trim() ? '想法文字' : '', n.attachments.length ? `${n.attachments.length} 份素材` : '', n.tags.length ? `${n.tags.length} 个标签` : ''].filter(Boolean).join('、')}<div class="saved-title">${esc(title(n))}</div></div><button class="btn primary" data-action="done">完成，回到灵感库 ${icon('arrow')}</button><button class="btn" data-action="new">继续记录</button><p class="storage-copy">已保存在此浏览器。其他设备上的记录互相独立。</p></section>`; }
+function savedMarkup() { const n = state.note; return `<section class="saved-view"><div class="check-circle">${icon('check')}</div><div class="eyebrow">ONE MORE PIECE OF INSPIRATION</div><h1>已保存</h1><p>这个小小的念头，已经被好好留下。</p><div class="saved-summary"><strong>本次保存内容</strong>${[n.text.trim() ? '想法文字' : '', n.attachments.length ? `${n.attachments.length} 份素材` : '', n.tags.length ? `${n.tags.length} 个标签` : ''].filter(Boolean).join('、')}<div class="saved-title">${esc(title(n))}</div></div><button class="btn primary" data-action="done">完成，回到灵感库 ${icon('arrow')}</button><button class="btn" data-action="new">继续记录</button><p class="storage-copy">已保存在此浏览器。其他设备上的记录互相独立。</p>${state.note.entryMethod && ENTRY_PLANS[state.note.entryMethod] ? `<div class="entry-saved-actions"><p>方案 ${ENTRY_PLANS[state.note.entryMethod].code} 已完成：唤醒 → 记录 → 保存</p><button class="btn" data-action="next-entry">体验下一种入口 →</button><button class="btn ghost" data-action="entries">返回方案选择</button></div>` : ''}</section>`; }
 function updateSave() { const button = $('#save-note'); if (button) button.disabled = !hasContent(state.note) || state.busy || state.recording; }
 function updateDraftStatus(text) { if ($('#draft-status')) $('#draft-status').textContent = text; }
 function scheduleDraft() {
@@ -255,7 +257,7 @@ function resetRecordButton() { if ($('#record-audio')) { $('#record-audio').disa
 async function stopRecording() { if (recorder?.state === 'recording') { recorder.stop(); await recordingPromise; } }
 
 function showHelp() {
-  openDialog(`${dialogHeader('随手记录，安心留下')}<div class="dialog-body"><div class="dialog-scroll"><div class="help-row"><strong>Windows、Mac 和手机都可以</strong>用浏览器打开即可，建议使用新版 Edge、Chrome 或 Safari。保存快捷键为 Ctrl / ⌘ + Enter。</div><div class="help-row"><strong>记录保存在当前浏览器</strong>文字、图片和声音不会上传。不同设备、浏览器的记录互相独立；清除网站数据或无痕窗口关闭后可能丢失，请及时导出备份。</div><div class="help-row"><strong>图片与录音</strong>支持选择、拖入和粘贴图片。相机与麦克风需要浏览器授权；录音保留声音，不自动转成文字。</div><div class="help-row"><strong>这是一个可操作的 Demo</strong>保留 Figma 的记录、标签、草稿和保存流程。浏览器版不包含 iOS 桌面组件或系统快捷手势。</div></div><div class="dialog-buttons" style="margin-top:18px"><button class="btn primary" id="export-backup">${icon('download')}导出记录与草稿</button><button class="btn" id="import-backup">${icon('upload')}导入备份</button></div></div>`);
+  openDialog(`${dialogHeader('随手记录，安心留下')}<div class="dialog-body"><div class="dialog-scroll"><div class="help-row"><strong>Windows、Mac 和手机都可以</strong>用浏览器打开即可，建议使用新版 Edge、Chrome 或 Safari。保存快捷键为 Ctrl / ⌘ + Enter。</div><div class="help-row"><strong>记录保存在当前浏览器</strong>文字、图片和声音不会上传。不同设备、浏览器的记录互相独立；清除网站数据或无痕窗口关闭后可能丢失，请及时导出备份。</div><div class="help-row"><strong>图片与录音</strong>支持选择、拖入和粘贴图片。相机与麦克风需要浏览器授权；录音保留声音，不自动转成文字。</div><div class="help-row"><strong>这是一个可操作的 Demo</strong>保留 Figma 的记录、标签、草稿和保存流程。“快捷唤醒体验”包含 A1 截图、A2 拍照组件、B 三指上滑和 C 直接打开的完整原型流程；场景模拟不会修改系统界面或监听其他 App。</div></div><div class="dialog-buttons" style="margin-top:18px"><button class="btn primary" id="export-backup">${icon('download')}导出记录与草稿</button><button class="btn" id="import-backup">${icon('upload')}导入备份</button></div></div>`);
   $('#export-backup').onclick = () => exportBackup().catch(report);
   $('#import-backup').onclick = () => $('#backup-picker').click();
 }
@@ -277,10 +279,10 @@ $('#backup-picker').addEventListener('change', async event => {
     const notes = data.notes.map(n => {
       if (typeof n.text !== 'string' || n.text.length > 1000000 || !Array.isArray(n.tags) || !n.tags.every(t => typeof t === 'string') || !Array.isArray(n.attachments) || n.attachments.length > 12 || !Number.isFinite(Date.parse(n.createdAt)) || !Number.isFinite(Date.parse(n.updatedAt))) throw new Error('备份中有无法识别的记录。');
       const attachments = n.attachments.map(a => {
-        if (a.kind === 'sample') return { id: crypto.randomUUID(), kind: 'sample' };
-        if (!['image', 'audio'].includes(a.kind) || typeof a.data !== 'string') throw new Error('备份中有不支持的素材。');
+        if (a.kind === 'sample') return { id: crypto.randomUUID(), kind: 'sample', ...(a.label === '照片' ? { label: '照片' } : {}) };
+        if (!['image', 'screenshot', 'audio'].includes(a.kind) || typeof a.data !== 'string') throw new Error('备份中有不支持的素材。');
         const m = a.data.match(/^data:((?:image\/(?:jpeg|png|webp|gif|avif)|audio\/(?:webm|mp4|ogg|wav))(?:;codecs=[\w.-]+)?);base64,([A-Za-z0-9+/=]+)$/);
-        if (!m || (a.kind === 'image') !== m[1].startsWith('image/')) throw new Error('备份中的素材格式无法识别。');
+        if (!m || (a.kind !== 'audio') !== m[1].startsWith('image/')) throw new Error('备份中的素材格式无法识别。');
         const binary = atob(m[2]); const bytes = Uint8Array.from(binary, c => c.charCodeAt(0));
         return { id: crypto.randomUUID(), kind: a.kind, blob: new Blob([bytes], { type: m[1] }) };
       });
@@ -297,6 +299,8 @@ app.addEventListener('click', async event => {
   const action = button.dataset.action;
   try {
     switch (action) {
+      case 'entries': await requestExit(() => openEntries()); break;
+      case 'next-entry': { const next = ENTRY_ORDER[(ENTRY_ORDER.indexOf(state.note.entryMethod) + 1) % ENTRY_ORDER.length]; await openEntries(next); break; }
       case 'home': case 'done': case 'all': await requestExit(() => goLibrary('all')); break;
       case 'drafts': await requestExit(() => goLibrary('drafts')); break;
       case 'filter-tag': await requestExit(() => goLibrary('all', button.dataset.tag)); break;
@@ -329,6 +333,43 @@ app.addEventListener('click', async event => {
     }
   } catch (error) { report(error); }
 });
+
+async function openEntries(plan = state.entryPlan) {
+  state.entryPlan = ENTRY_PLANS[plan] ? plan : 'a1'; state.entryStep = 'ready'; state.entryScreenshot = null; state.view = 'entries'; state.note = null; state.busy = false;
+  render(); window.scrollTo(0, 0);
+}
+async function enterFromPlan(plan, realCamera = false) {
+  const note = newNote(); note.entryMethod = plan;
+  if (plan === 'a1') {
+    if (!state.entryScreenshot) throw new Error('请先模拟截图，再开始记录。');
+    note.attachments = [{ id: crypto.randomUUID(), kind: 'screenshot', name: '原型截图.png', blob: state.entryScreenshot }];
+  }
+  if (plan === 'a2' && !realCamera) note.attachments = [{ id: crypto.randomUUID(), kind: 'sample', label: '照片' }];
+  await openEditor(note); if (hasContent(note)) scheduleDraft();
+  if (realCamera) await openCamera();
+}
+app.addEventListener('click', async event => {
+  const planButton = event.target.closest('[data-entry-plan]'), actionButton = event.target.closest('[data-entry]');
+  try {
+    if (planButton) { await openEntries(planButton.dataset.entryPlan); return; }
+    if (!actionButton || state.view !== 'entries' || state.busy) return;
+    switch (actionButton.dataset.entry) {
+      case 'restart': await openEntries(); break;
+      case 'take-screenshot':
+        state.busy = true; actionButton.disabled = true;
+        try { state.entryScreenshot = await makeDemoScreenshot(); state.entryStep = 'captured'; render(); }
+        finally { state.busy = false; if (actionButton.isConnected) actionButton.disabled = false; }
+        break;
+      case 'capture-screenshot': await enterFromPlan('a1'); break;
+      case 'widget': state.entryStep = 'camera'; render(); break;
+      case 'sample-photo': await enterFromPlan('a2'); break;
+      case 'real-camera': await enterFromPlan('a2', true); break;
+      case 'swipe': await enterFromPlan('b'); break;
+      case 'direct': await enterFromPlan('c'); break;
+    }
+  } catch (e) { report(e); }
+});
+
 document.addEventListener('keydown', event => {
   if (event.isComposing || dialog.open) return;
   if ((event.ctrlKey || event.metaKey) && event.key === 'Enter' && state.view === 'editor') { event.preventDefault(); save(); }
@@ -338,4 +379,4 @@ window.addEventListener('beforeunload', event => { if (pendingDraft || state.bus
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden' && state.view === 'editor') { stopRecording().then(() => persistDraft()).catch(storageFailed); } });
 window.addEventListener('pagehide', () => { audioRequest++; cameraRequest++; audioStream?.getTracks().forEach(t => t.stop()); cameraStream?.getTracks().forEach(t => t.stop()); });
 if (channel) channel.onmessage = async () => { if (state.view === 'library') { await refresh(); render(); renderCards(); } };
-try { await refresh(); render(); renderCards(); } catch (error) { state.storageError = '浏览器存储不可用。请允许网站保存本地数据，再重新打开页面。'; render(); report(error); }
+try { await refresh(); const entry = new URL(location.href).searchParams.get('entry'); if (ENTRY_PLANS[entry]) await openEntries(entry); else { render(); renderCards(); } } catch (error) { state.storageError = '浏览器存储不可用。请允许网站保存本地数据，再重新打开页面。'; render(); report(error); }
